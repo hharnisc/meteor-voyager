@@ -29,7 +29,7 @@ class Voyager extends EventEmitter
                 @_stats = new ServerStats()
                 @startStatsTransmit()
                 @_ddpclient.on "message", @onMessage
-                @_ddpclient.subscribe "appEvents", [@_voyagerApiKey], (error, result) =>
+                @_ddpclient.subscribe "serverEvents", [@_voyagerApiKey], (error, result) =>
                     if error
                         console.error "Could not subscribe to events - stopping stats transmission"
                         @stopStatsTransmit()
@@ -65,7 +65,7 @@ class Voyager extends EventEmitter
             console.error "Invalid log level"
             return
 
-        log = 
+        log =
             level: level
             createdAt: new Date().getTime()
             message: message
