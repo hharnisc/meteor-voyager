@@ -82,6 +82,6 @@ class Voyager extends EventEmitter
             @emit data.fields.type, data.fields.data, data.id
 
     eventCompleted: (eventId) ->
-        @_ddpclient.call 'eventComplete', [eventId], (error, result) ->
+        @_ddpclient.call 'eventComplete', [@_voyagerApiKey, eventId], (error, result) ->
             if error
                 console.error error
