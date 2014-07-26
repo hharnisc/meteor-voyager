@@ -3,7 +3,8 @@ Package.describe({
 });
 
 Npm.depends({
-    'ddp': '0.7.0'
+    'ddp': '0.7.0',
+    'ddp-ejson': '0.8.1-3'
 });
 
 Package.on_use(function (api) {
