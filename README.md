@@ -62,3 +62,5 @@ Setup load event handlers in your app using
 Add your YO! username to the app config dashboard
 
 You'll get yo's for every triggered event and on server disconnect!
+
+Example App using Voyager: https://github.com/cdurant/twitter-voyager
