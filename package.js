@@ -2,11 +2,6 @@ Package.describe({
   summary: 'voyager'
 });
 
-Npm.depends({
-    'ddp': '0.7.0',
-    'ddp-ejson': '0.8.1-3'
-});
-
 Package.on_use(function (api) {
     api.use('coffeescript');
     api.use('server-stats', 'server');

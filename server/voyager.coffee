@@ -1,39 +1,17 @@
 Fiber = Npm.require 'fibers'
 EventEmitter = Npm.require 'events'
-DDPClient = Npm.require 'ddp'
 
 class Voyager extends EventEmitter
-    constructor: (_voyagerServer, _voyagerPort, @_voyagerApiKey, useSsl, reconnectInterval) ->
+    constructor: (_voyagerServer, @_voyagerApiKey) ->
         _voyagerServer ?= Meteor.settings.voyagerServer
-        _voyagerPort ?= Meteor.settings.voyagerPort
         @_voyagerApiKey ?= Meteor.settings.voyagerApiKey
-        useSsl ?= false
-        reconnectInterval ?= 5000
-
-        @_ddpclient = new DDPClient
-            host: _voyagerServer
-            port: _voyagerPort
-            auto_reconnect: true
-            auto_reconnect_timer: reconnectInterval
-            use_ssl: useSsl
-            maintain_collections: false
-
-        @_ddpclient.connect (error) =>
+        @_ddpclient = DDP.connect _voyagerServer    
+        @_stats = new ServerStats()
+        @startStatsTransmit()
+        @_ddpclient.subscribe "serverEvents", [@_voyagerApiKey], (error, result) =>
             if error
-                # TODO: might want to throw an exception here
-                console.error "There was an error connecting to the voyager server"
-                return
-            # connect our server stats and start transmission
-            
-            Fiber(=>
-                @_stats = new ServerStats()
-                @startStatsTransmit()
-                @_ddpclient.on "message", @onMessage
-                @_ddpclient.subscribe "serverEvents", [@_voyagerApiKey], (error, result) =>
-                    if error
-                        console.error "Could not subscribe to events - stopping stats transmission"
-                        @stopStatsTransmit()
-            ).run()
+                console.error "Could not subscribe to events - stopping stats transmission"
+                @stopStatsTransmit()
 
     startStatsTransmit: ->
         @_statsIntervalId = Meteor.setInterval =>
@@ -74,12 +52,6 @@ class Voyager extends EventEmitter
         @_ddpclient.call 'log', [@_voyagerApiKey, log], (error, result) ->
             if error
                 console.error error
-
-    onMessage: (message) ->
-        data = EJSON.parse message
-        if data.msg is "added" and data.collection is "events"
-            console.log "event detected"
-            @emit data.fields.type, data.fields.data, data.id
 
     eventCompleted: (eventId) ->
         @_ddpclient.call 'eventComplete', [@_voyagerApiKey, eventId], (error, result) ->
