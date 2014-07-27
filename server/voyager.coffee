@@ -1,17 +1,23 @@
 Fiber = Npm.require 'fibers'
-EventEmitter = Npm.require 'events'
+EventEmitter = Npm.require('events').EventEmitter
 
 class Voyager extends EventEmitter
     constructor: (_voyagerServer, @_voyagerApiKey) ->
         _voyagerServer ?= Meteor.settings.voyagerServer
         @_voyagerApiKey ?= Meteor.settings.voyagerApiKey
-        @_ddpclient = DDP.connect _voyagerServer    
+        @_ddpclient = DDP.connect _voyagerServer  
         @_stats = new ServerStats()
         @startStatsTransmit()
+        VoyagerEvents = new Meteor.Collection "voyagerevents", @_ddpclient
+        self = @
         @_ddpclient.subscribe "serverEvents", [@_voyagerApiKey], (error, result) =>
             if error
                 console.error "Could not subscribe to events - stopping stats transmission"
                 @stopStatsTransmit()
+            eventCursor = VoyagerEvents.find()
+            eventCursor.observe
+                added: (event) =>
+                    @emit event.type, event._id, event.data
 
     startStatsTransmit: ->
         @_statsIntervalId = Meteor.setInterval =>
